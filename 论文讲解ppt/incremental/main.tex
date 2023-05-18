@@ -1,0 +1,374 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.20 of 2017/10/04
+%
+\documentclass[runningheads]{llncs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{upgreek}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{todonotes}
+\usepackage{multirow} 
+\usepackage{times}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usepackage{url}
+\usepackage{marvosym}
+\def\lz#1{\textbf{\color{red} #1\color{black}}}
+
+\usepackage{algorithm}  
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\algrenewcommand{\algorithmiccomment}[1]{\hfill\(\triangleright\) \textcolor[gray]{0.5}{#1}}
+
+
+\newtheorem{invariant}[theorem]{Invariant}
+%
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+
+% If you use the hyperref package, please uncomment the following line
+% to display URLs in blue roman font according to Springer's eBook style:
+% \renewcommand\UrlFont{\color{blue}\rmfamily}
+
+%%%%%% To display ORCID Logo with link, Please add below definition and copy the ORCID_Color.eps in the manuscript package %%%%%
+
+\makeatletter
+\RequirePackage[bookmarks,unicode,colorlinks=true]{hyperref}%
+   \def\@citecolor{blue}%
+   \def\@urlcolor{blue}%
+   \def\@linkcolor{blue}%
+\def\UrlFont{\rmfamily}
+\def\orcidID#1{\smash{\href{http://orcid.org/#1}{\protect\raisebox{-1.25pt}{\protect\includegraphics{orcid_color.eps}}}}}
+\makeatother
+
+
+
+
+\begin{document}
+%
+\title{Contribution Title}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Anonymous}
+%
+\authorrunning{Anonymous}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+%\institute{SKLCS, Institute of Software, Chinese Academy of Sciences, Beijing, China \and
+%University of Chinese Academy of Sciences, Beijing, China}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+The abstract should briefly summarize the contents of the paper in
+150--250 words.
+
+\keywords{First keyword  \and Second keyword \and Another keyword.}
+\end{abstract}
+%
+%
+%
+
+
+\section{Introduction}
+Deep  neural networks (DNN) they have achieved exceptional performance in many fields like computer vision, natural language processing, game playing~\cite{alphago}, and malware detection.
+However, it is found that DNNs are often lack of robustness, and are vulnerable to adversarial samples~\cite{SZSBEGF2014}. 
+Even for a well-trained DNN, a very small (and even imperceptible) perturbation on the input may fool the network. 
+This raises the concerns on the safety and reliability of DNNs when we deploy them in safety-critical applications like self-driving cars~\cite{selfdriving} and medical systems~\cite{medicalsystem}. 
+
+Formal verification is a way to guarantee the robustness of DNNs.
+In this work, we focus on local robustness, i.e., given an input and a manipulation region around this input, we determine whether a given DNN works correctly on any input in the region. 
+Constraint solving is an elementary and classical way for DNN verification.
+In 2010, Luca Pulita et al. proposed the first method based on partition-refinement for DNN verification in~\cite{DBLP:conf/cav/PulinaT10}. 
+In 2017, Katz et al.~\cite{reluplex} and Ehlers~\cite{planet} independently implemented Reluplex and Planet, two SMT solvers to verify DNNs with the $\mathrm{ReLU}$ activation function on properties expressible with SMT constraints. 
+Since 2018, abstract interpretation has been one of the most popular methods for DNN verification in the lead of AI${}^2$~\cite{AI2}, and subsequent works like \cite{deepz,deeppoly,deepsymbol,charon,krelu,deeppolygpu,prodeep} have improved AI${}^2$ in terms of efficiency, precision and more activation functions (like sigmoid and $\tanh$) so that abstract interpretation based approach can be applied to DNNs of larger size and more complex structures. 
+
+
+
+
+\section{Preliminary}
+
+In this section, we recall some basic definitions on verification of deep neural networks. For a vector $x \in \mathbb R^n$, we used $x_i$ to denote its $i$-th entry for $1 \le i \le n$. We write $a\wedge b:=\min(a,b)$ and $a\vee b:=\max(a,b)$ for $a,b \in \mathbb R$.
+
+A deep neural network (DNN) is composed of a sequence of layers, starting with the input layer and ending with the output layer, with several hidden layers in between. 
+In a layer, there are several neurons, which each represent a real-valued variable. 
+Except for neurons in the input layer, the value of a neuron is obtained by a function of the neurons in the previous layer.
+We model a DNN as a function $f:\mathbb R^m \to \mathbb R^n$, which is the composition of the functions between layers. Such functions include affine functions and non-linear activation functions. 
+An affine function is of the form $y=Wx+b$, where $W$ and $b$ are a constant real-valued matrix and vector, respectively. 
+In this work, we only consider the ReLU activation function, defined as $\mathrm{ReLU}(x)=0 \vee x$ for $x \in \mathbb R$. For a ReLU relation $x_j=\mathrm{ReLU}(x_i)$, we say that the neuron $x_i$ is definitely activated/deactivated, if all the possible values of $x_i$ are non-negative/non-positive. If $x_i$ is neither definitely activated nor definitely deactivated, we say that it is uncertain.
+
+A safety property of a DNN is a tuple $(f,X,P)$, where $f:\mathbb R^m \to \mathbb R^n$ is the neural network, and $X \subseteq \mathbb R^m$ and $P \subseteq \mathbb R^n$ are a set of input and output, respectively. The property $(f,X,P)$ holds iff for all $x \in X$, $f(x) \in P$. Typically a DNN verification problem is to determine whether a given property $(f,X,P)$ holds.
+The well-known local robustness is also a safety property of DNNs. For a classification DNN $f:\mathbb R^m \to \mathbb R^n$, its output usually represents the score of each classification label ranging in $\{1,2,\ldots,n\}$, and the DNN selects the label with the largest score as its classification result. Formally we define $C_f(x)=\arg \max_{1 \le i \le n} f(x)_i$ as the classification output of $f$. A classification DNN $f:\mathbb R^m \to \mathbb R^n$ is locally robust in a given neighborhood $B(x_0)$ of an input $x_0 \in \mathbb R^m$, if for all $x \in B(x_0)$, $C_f(x)=C_f(x_0)$. Such a local robustness property is a safety property $(f,X,P)$, where $X=B(x_0)$ and $P=\{y \in \mathbb R^n \mid \arg \max_i y_i=C_f(x_0)\}$.
+
+Constraint solving is an elementary way for DNN verification. Given a safety property $(f,X,P)$, we encode the input set $X$, the functions in the DNN $f$, and the negation of the property $P$ as equations or inequalities, and determine whether the conjunction of these constraints is satisfiable. If it is satisfiable, there must exist a counterexample that violates the property, or else the property holds. Hereafter, we assume that the input region $X$ as well as the the property $P$ is a polytope, i.e., a conjunction of finitely many linear inequalities. In this case, the negation $\neg P$ is a disjunction $\bigvee_i Q_i$ of polytopes, and we usually divide the problem according to the disjunction into small ones in which every $Q_i$ is a polytope.
+
+
+\section{Incremental Constraint Solving for DNN Verification}
+
+In this section, we introduce the incremental SMT solving problem for DNN verification, and present our main algorithm.
+
+\subsection{Problem formulation}
+We start with Reluplex. 
+A Reluplex configuration $\mathcal C$ on a set $\mathcal X$ of variables is $\mathsf{SAT}$, $\mathsf{UNSAT}$, or a tuple $(\mathcal B,T,R,l,u,\alpha)$, where $\mathcal B \subseteq \mathcal X$ is the set of basic variables, $T$ is the tableau which stores constraints of the form $x_i=\sum_{x_j \not \in \mathcal B} a_{ij}x_j$ with $x_i \in \mathcal B$, $R \subseteq \mathcal X \times \mathcal X$ is the set of ReLU pairs, $l,u:\mathcal X \to \mathbb R$ is the lower and the upper bound of each variable, respectively, and $\alpha:\mathcal X \to \mathbb R$ is the assignment of each variable. 
+Given a property $(f,X,P)$, we initialize the configuration by introducing slack variables to establish the tableau and invoking DeepPoly to compute the numerical bound. 
+When we reach a figuration $(\mathcal B,T,R,l,u,\alpha)$, a local search is conducted by pivoting the variables and adjusting the assigment $\alpha$ of variables to match the constraints given by the tableau $T$ and the ReLU relation $R$. 
+If an assignment is found with all these constraints satisfied, then a counterexample is found and Reluplex outputs $\mathsf{SAT}$. 
+If  there is a linear equation $x_i=\sum_{x_j \not \in \mathcal B} a_{ij}x_j$ in the tableau $T$ satisfying 
+\begin{align} \label{eq:unsat1}
+l(x_i)>\sum_{x_j \not \in \mathcal B} (a_{ij} \vee 0) \cdot u(x_j)+\sum_{x_j \not \in \mathcal B} (a_{ij} \wedge 0) \cdot l(x_j)
+\end{align}
+or
+\begin{align}\label{eq:unsat2}
+u(x_i)<\sum_{x_j \not \in \mathcal B} (a_{ij} \vee 0) \cdot l(x_j)+\sum_{x_j \not \in \mathcal B} (a_{ij} \wedge 0) \cdot u(x_j),
+\end{align}
+then no assignment can satisfy the constraints in this configuration, and we mark $\mathsf{UNSAT}$ for this configuration.
+A local search may not determine $\mathsf{SAT}$ or $\mathsf{UNSAT}$ for a configuration. After a certain number of steps, we stop the local search and choose an uncertain neuron $x_j$ to split its numerical bound into $[0,u(x_j)]$ and $[l(x_j),0]$. We assert the constraint $x_j \ge 0$ or $x_j \le 0$ to the current configuration and conduct a new local search. If all the branches are marked with $\mathsf{UNSAT}$, then Reluplex outputs $\mathsf{UNSAT}$.
+
+We formalize a Reluplex solving procedure as a labelled binary tree $\mathcal T=(V,E,r,L)$, where $V$ is the set of nodes, $E \subseteq V \times V$ is the set of edges, $r \in V$ is the root, and $L$ is a map assigning each node $v \in V$ to a sequence of configurations and each edge $e \in E$ to an assertion of the form $x_j \ge 0$ or $x_j \le 0$, where $x_j$ is an uncertain neuron. If the output is $\mathsf{UNSAT}$, all the leaves in this tree have label of the form $\mathcal C_1, \ldots, \mathcal C_n,\mathsf{UNSAT}$, and we call them UNSAT leaves. If the output is $\mathsf{SAT}$, there exists a leaf whose label is of the form $\mathcal C_1, \ldots, \mathcal C_n,\mathsf{SAT}$, which we call a SAT leave, and the other leaves are labelled with either $\mathcal C_1, \ldots, \mathcal C_n,\mathsf{UNSAT}$ or the empty sequence $\varepsilon$. For a sequence $\ell$ of configurations, we use $\ell \downarrow$ to represent the last configuration that is not $\mathsf{SAT}$ or $\mathsf{UNSAT}$ in $\ell$. For a node $v \in V$, we use $\mathbf{Assert}(v)$ to denote the conjunction of assertions labelling the edges from the root to $v$.
+
+Incremental constraint solving for DNN verification is aimed to efficiently verify a property on the modified DNN $f'$ by making use of the verification procedure of the original DNN $f$. In this work, we consider incremental SMT solving based on the Reluplex framework, and assume that the modified DNN $f'$ has exactly the same structure as the original DNN $f$, and only slightly differs in the weights and bias in the affine functions. We formally state our incremental SMT solving problem for DNN verification as follows:
+
+\begin{quote}
+    Given the Reluplex solving procedure $\mathcal T=(V,E,r,L)$ of a safety property $(f,X,P)$, we determine whether the property $(f',X,P)$ holds, where the DNN $f'$ only differs from $f$ in the weights and bias in the affine functions.
+\end{quote}
+
+
+
+
+
+\begin{figure}[t]
+  \centering
+  \scalebox{0.82}{
+ \begin{tikzpicture}[->,>=stealth,auto,node distance=1.2cm,semithick,scale=1,every node/.style={scale=1}]
+	\tikzstyle{blackdot}=[circle,fill=black,minimum size=6pt,inner sep=0pt]
+	\tikzstyle{state}=[minimum size=0pt,circle,draw,thick]
+	\tikzstyle{stateNframe}=[minimum size=0pt]	
+	\node[state](x1){$x_1$};
+	\node[state](x2)[below of=x1,yshift=-0.3cm]{$x_2$};
+	\node[state](x3)[right of=x1,xshift=1.2cm]{$x_3$};
+	\node[state](x4)[right of=x2,xshift=1.2cm]{$x_4$};
+	\node[state](y1)[right of=x3,xshift=1.2cm]{$y_1$};
+	\node[state](y2)[right of=x4,xshift=1.2cm]{$y_2$};
+%	\node[blackdot](d1)[above of=r11,xshift=0.6cm]{};
+\node[stateNframe](f1)[above of=x1,yshift=-0.5cm]{$u_1=1$};	
+\node[stateNframe](f2)[above of=f1,yshift=-0.85cm]{$l_1=-1$};	
+\node[stateNframe](f3)[above of=f2,yshift=-0.85cm]{$x_1\le 1$};	
+\node[stateNframe](f4)[above of=f3,yshift=-0.85cm]{$x_1 \ge -1$};
+
+\node[stateNframe](g1)[above of=x3,yshift=-0.5cm]{$u_3=2$};	
+\node[stateNframe](g2)[above of=g1,yshift=-0.85cm]{$l_3=-2$};	
+\node[stateNframe](g3)[above of=g2,yshift=-0.85cm]{$x_3\le x_1-x_2$};	
+\node[stateNframe](g4)[above of=g3,yshift=-0.85cm]{$x_3 \ge x_1-x_2$};
+
+\node[stateNframe](h1)[above of=y1,yshift=-0.5cm]{$u_5=2$};	
+\node[stateNframe](h2)[above of=h1,yshift=-0.85cm]{$l_5=0$};	
+\node[stateNframe](h3)[above of=h2,yshift=-0.85cm]{$y_1\le 0.5 x_3+1$};	
+\node[stateNframe](h4)[above of=h3,yshift=-0.85cm]{$y_1\ge 0$};
+
+\node[stateNframe](i1)[below of=x2,yshift=0.5cm]{$x_2\ge -1$};	
+\node[stateNframe](i2)[below of=i1,yshift=0.85cm]{$x_2 \le 1$};	
+\node[stateNframe](i3)[below of=i2,yshift=0.85cm]{$l_2= -1$};	
+\node[stateNframe](i4)[below of=i3,yshift=0.85cm]{$u_2 = 1$};
+
+\node[stateNframe](j1)[below of=x4,yshift=0.5cm]{$x_4\ge x_1+x_2+2.2$};	
+\node[stateNframe](j2)[below of=j1,yshift=0.85cm]{$x_4 \le x_1+x_2+2.2$};
+\node[stateNframe](j3)[below of=j2,yshift=0.85cm]{$l_4= 0.1$};	
+\node[stateNframe](j4)[below of=j3,yshift=0.85cm]{$u_4 = 4.1$};
+
+\node[stateNframe](k1)[below of=y2,yshift=0.5cm]{$y_2\ge x_4$};	
+\node[stateNframe](k2)[below of=k1,yshift=0.85cm]{$y_2 \le x_4$};
+\node[stateNframe](k3)[below of=k2,yshift=0.85cm]{$l_6= 0.1$};	
+\node[stateNframe](k4)[below of=k3,yshift=0.85cm]{$u_6 = 4.1$};
+
+\node[stateNframe](a)[below of=j4,yshift=0.5cm]{(a) The original DNN $f$};
+
+\node[state](x11)[right of=y1,xshift=1cm]{$x_1$};
+	\node[state](x21)[below of=x11,yshift=-0.3cm]{$x_2$};
+	\node[state](x31)[right of=x11,xshift=1.2cm]{$x_3$};
+	\node[state](x41)[right of=x21,xshift=1.2cm]{$x_4$};
+	\node[state](y11)[right of=x31,xshift=1.2cm]{$y_1$};
+	\node[state](y21)[right of=x41,xshift=1.2cm]{$y_2$};
+	
+\node[stateNframe](l1)[above of=x11,yshift=-0.5cm]{\color{red}$u_1=0$};	
+\node[stateNframe](l2)[above of=l1,yshift=-0.85cm]{$l_1=-1$};	
+\node[stateNframe](l3)[above of=l2,yshift=-0.85cm]{\color{red}$x_1\le 0$};	
+\node[stateNframe](l4)[above of=l3,yshift=-0.85cm]{$x_1 \ge -1$};
+
+\node[stateNframe](m1)[below of=x21,yshift=0.5cm]{$x_2\ge -1$};	
+\node[stateNframe](m2)[below of=m1,yshift=0.85cm]{\color{red}$x_2 \le -0.667$};	
+\node[stateNframe](m3)[below of=m2,yshift=0.85cm]{$l_2= -1$};	
+\node[stateNframe](m4)[below of=m3,yshift=0.85cm]{\color{red}$u_2 = -0.667$};
+
+\node[stateNframe](n1)[above of=x31,yshift=-0.5cm]{\color{red}$u_3=1$};	
+\node[stateNframe](n2)[above of=n1,yshift=-0.85cm]{\color{red}$l_3=-0.333$};	
+\node[stateNframe](n3)[above of=n2,yshift=-0.85cm]{$x_3\le x_1-x_2$};	
+\node[stateNframe](n4)[above of=n3,yshift=-0.85cm]{$x_3 \ge x_1-x_2$};
+
+\node[stateNframe](o1)[below of=x41,yshift=0.5cm]{$x_4\ge x_1+x_2+2.19$};	
+\node[stateNframe](o2)[below of=o1,yshift=0.85cm]{$x_4 \le x_1+x_2+2.19$};
+\node[stateNframe](o3)[below of=o2,yshift=0.85cm]{$l_4= 0.5$};	
+\node[stateNframe](o4)[below of=o3,yshift=0.85cm]{\color{blue}$u_4 = 1.833$};
+
+\node[stateNframe](q1)[above of=y11,yshift=-0.5cm]{\color{blue}$u_5=1$};	
+\node[stateNframe](q2)[above of=q1,yshift=-0.85cm]{$l_5=0$};	
+\node[stateNframe](q3)[above of=q2,yshift=-0.85cm]{\enspace\enspace\color{red}$y_1\le 0.75 x_3+0.25$};	
+\node[stateNframe](q4)[above of=q3,yshift=-0.85cm]{\color{red}$y_1\ge x_3$};
+
+
+\node[stateNframe](p1)[below of=y21,yshift=0.5cm]{$y_2\ge x_4$};	
+\node[stateNframe](p2)[below of=p1,yshift=0.85cm]{$y_2 \le x_4$};
+\node[stateNframe](p3)[below of=p2,yshift=0.85cm]{$l_6= 0.5$};	
+\node[stateNframe](p4)[below of=p3,yshift=0.85cm]{\color{blue}$u_6 = 1.833$};
+
+
+
+\node[stateNframe](b)[below of=o4,yshift=0.5cm]{(b) The modified DNN $f'$};
+
+
+	\path (x1) edge	[-]						node {$1$} (x3)
+		(x1) edge[-]							node[xshift=-0.6cm,yshift=0.2cm] {$1$} (x4)
+		(x2) edge	[-]						node[xshift=-0.2cm,yshift=-0.35cm] {$-1$} (x3)
+		(x2) edge[-]							node {$1$} (x4)
+			(x3) edge	[-]						node { $\mathrm{ReLU}(x_3)$} (y1)
+		(x4) edge[-]							node {$\mathrm{ReLU}(x_4)$} (y2)
+		(x11) edge	[-]						node {$0.95$} (x31)
+		(x11) edge[-]							node[xshift=-0.6cm,yshift=0.2cm] {$1.04$} (x41)
+		(x21) edge	[-]						node[xshift=-0.2cm,yshift=-0.35cm] {$-1.02$} (x31)
+		(x21) edge[-]							node {$1.03$} (x41)
+			(x31) edge	[-]						node { $\mathrm{ReLU}(x_3)$} (y11)
+		(x41) edge[-]							node {$\mathrm{ReLU}(x_4)$} (y21)
+		
+			  ;
+\end{tikzpicture}}
+  \caption{} \label{fig:example}
+\end{figure}
+
+\subsection{A running example}
+We show the main idea of our incremental SMT solving with a small example. Consider the DNNs in Fig.~\ref{fig:example}, and we verify whether $y_2>y_1$ for all $(x_1,x_2)^\mathrm{T} \in [-1,1] \times [-1,1]$. For the original DNN $f$, we invoke a simple Reluplex solving. 
+
+
+
+
+
+\subsection{Main algorithm}
+
+For this incremental SMT solving problem, the most significant intuition is that, the modified DNN $f'$ is slightly different from the original DNN $f$, so it is highly possible that the verification procedure of $f'$ inherits that of $f$ in most branches. 
+This motivates us to directly locate the configurations in the leaves, especially the one before the last which immediately infers $\mathsf{UNSAT}$ or $\mathsf{SAT}$ in the original solving. 
+We check whether such inference still works for the modified DNN $f'$. 
+
+ We show the main algorithm in Alg.~1. Given the Reluplex solving procedure $\mathcal T=(V,E,r,L)$ of a safety property $(f,X,P)$ and the modified DNN $f'$, we first initialize the configuration for $f'$ and cut the unsatisfiable branches in $\mathcal T$. An edge $e \in E$ is eliminated, denoted by $T \setminus \{e\}$, if its label $L(e)$ contradicts with the result of the DeepPoly calculation, and the sub-tree beneath the edge $e$ is deleted from $\mathcal T$ at the same time (Line 3-4). If there is a SAT leaf node $v$ in the current tree $\mathcal T$, we first heuristically use an attack method (like PGD) to try to find a counterexample. Here we do not invoke the attack method straight to the DNN $f'$, but $f'$ under the constraints of the assertions from the root to this SAT leaf $v$. When we calculate the gradient of the DNN $f'$, we always use the assertions in $\mathbf{Assert}(v)$ to determine the derivative of the involved ReLU functions. In this way, we are searching a counterexample which has the same activation pattern as the node $v$ (Line 5-7). If no counterexample is found via the attack method, we go through all the leaf nodes in $\mathcal T$ and and solve the configuration in these nodes. 
+ 
+ For the SAT node or the nodes labelled with $\varepsilon$, we invoke a simple Reluplex solving. For an UNSAT node $v$, we incrementally solve it by checking whether the old proof of $\mathsf{UNSAT}$ of $v$ still works for the modified DNN $f'$. 
+ Here we locate ourselves in $L(v) \downarrow$, the configuration that infers $\mathsf{UNSAT}$. We obtain the basic variables $\mathbf{Basic}(L(v) \downarrow)$ in this configuration and turn the initial tableau $T_0$ for $f'$ to the form with these basic variables (Line 4). Recall that an $\mathsf{UNSAT}$ Reluplex inference derives from Inequality $\eqref{eq:unsat1}$ or $\eqref{eq:unsat2}$, so we further focus on the linear equation $(L(v) \downarrow)^*$ which infers $\mathsf{UNSAT}$. We use a standard linear approximation encoding and obtain tighter upper and lower bounds of the variables in $(L(v) \downarrow)^*$ by solving the linear programming (Line 2-3). The reason why we need linear programming to obtain tighter bounds is that tighter bounds are beneficial for inferring $\mathsf{UNSAT}$ of $v$ for $f'$. Now we look at the equation $(L(v) \downarrow)^*$ in $T$ with the tighter bounds, and check whether this configuration infers $\mathsf{UNSAT}$ (Line 5-6). If not, we continue to conduct a Reluplex solving for $v$ from this configuration.
+
+\begin{algorithm}[t]
+    \caption{Incremental SMT solving for DNN verification}
+    \label{Alg:main}
+    \begin{algorithmic}[1]
+        \Require
+        \Statex  The Reluplex solving procedure $\mathcal T=(V,E,r,L)$ of a safety property $(f,X,P)$ and the modified DNN $f'$
+        \Ensure
+        \Statex Return $\mathsf{SAT}$ if $(f',X,P)$ does not hold, or $\mathsf{UNSAT}$ otherwise.
+        \Function{Verify}{$f',X,P,\mathcal T$}
+            \State  $\mathbf{Initialize}(f',X,P)$ \Comment{Standard Reluplex encoding with a DeepPoly calculation}
+       %     \State $V_\mathrm{u} \gets \{v \mid v \text{ was marked as uncertain in Line 2}\}$
+              \For{$e \in E$}
+                \If{$L(e) \cap \mathbf{DeepPoly}(f',X)=\varnothing$} $\mathcal T \gets \mathcal T \setminus \{e\}$
+                \EndIf
+              \EndFor
+            \If{there is a SAT leaf $v \in V$}
+            \State $\mathbf{Attack}(f' \wedge \mathbf{Assert}(v))$ 
+            \If{a counterexample is found} \Return $\mathsf{SAT}$ 
+            \EndIf
+            \EndIf
+            \For{leaf nodes $v \in V$}   \Comment{We first deal with the SAT node and the nodes labelled by $\varepsilon$}
+            \If{$\mathbf{Solve}(v)=\mathsf{SAT}$} \Return $\mathsf{SAT}$ 
+            \EndIf
+            \EndFor
+     \State \Return $\mathsf{UNSAT}$ 
+       \EndFunction
+\end{algorithmic}\end{algorithm}
+
+\begin{algorithm}[t]
+    \caption{The function $\mathbf{Solve}(v)$ for an UNSAT node $v$}
+    \label{Alg:solve}
+    \begin{algorithmic}[1]
+        \Require
+        \Statex  The Reluplex solving procedure $\mathcal T=(V,E,r,L)$, the modified DNN $f'$, and an UNSAT leaf node $v \in V$
+        \Ensure
+        \Statex Return $\mathsf{SAT}$ if $(f',X \wedge \mathbf{Assert}(v),P)$ does not hold, or $\mathsf{UNSAT}$ otherwise.
+        \Function{Solve}{$f',\mathcal T,v$}
+           \For{$x_i \in \mathrm{Var}((L(v) \downarrow)^*)$} \Comment{$(L(v) \downarrow)^*$: the linear equation which infers $\mathsf{UNSAT}$ for $v$}
+          \State  $(l_i,u_i) \gets \mathbf{LP}(f'\wedge X \wedge \neg P \wedge \mathbf{Assert}(v),x_i)$ \Comment{Output $\mathsf{UNSAT}$ if infeasible}
+            \EndFor
+            \State $T \gets T_0(\mathbf{Basic}(L(v) \downarrow))$\Comment{Transfer the basic variables the same as $L(v) \downarrow$}
+            \If{$(L(v) \downarrow)^*(T,l,u)$ infers $\mathsf{UNSAT}$}
+            \State \Return $\mathsf{UNSAT}$ \Comment{Check whether the old $\mathsf{UNSAT}$ proof still works}
+       %     \State $V_\mathrm{u} \gets \{v \mid v \text{ was marked as uncertain in Line 2}\}$
+     \Else ~\Return $\mathbf{Reluplex}(v)$ \Comment{Reluplex solving from $v$}
+     \EndIf
+       \EndFunction
+\end{algorithmic}\end{algorithm}
+
+Alg.~1 is sound and complete. When a counterexample is found, it is either a true counterexample from the attack method, or a true counterexample from a Reluplex solving. When it returns $\mathsf{UNSAT}$, all the leaf nodes in the search tree $\mathcal T$ are UNSAT nodes.
+
+\begin{theorem}
+Alg.~1 is sound and complete. 
+\end{theorem}
+
+
+\section{Optimizations}
+
+In this section, we introduce 
+
+\section{Experimental Evaluation}
+\begin{table}[h]\tiny
+\begin{tabular}{lccccccccccccccc} 
+    & 	 \multicolumn{3}{c}{property1} 	 & 	 \multicolumn{3}{c}{property2} 	 & 	 \multicolumn{3}{c}{property3} 	 & 	 \multicolumn{3}{c}{property4} 	 & 	 \multicolumn{3}{c}{property5} \\ 
+    & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 \\ 
+NN1 	 & 	 UNSAT 1857 	 & 	 UNSAT 1858 	 & 	 UNSAT 1859 	 & 	 UNSAT 1860 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 \\ 
+    & 	 UNSAT 3641 	 & 	 UNSAT 1859 	 & 	 UNSAT 1860 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 \\ 
+NN2 	 & 	 UNSAT 3642 	 & 	 UNSAT 1860 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 \\ 
+    & 	 UNSAT 3643 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 \\ 
+NN3 	 & 	 UNSAT 3644 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 \\ 
+    & 	 UNSAT 3645 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 \\ 
+NN4 	 & 	 UNSAT 3646 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 	 & 	 UNSAT 1877 \\ 
+    & 	 UNSAT 3647 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 	 & 	 UNSAT 1877 	 & 	 UNSAT 1878 \\ 
+NN5 	 & 	 UNSAT 3648 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 	 & 	 UNSAT 1877 	 & 	 UNSAT 1878 	 & 	 UNSAT 1879 \\ 
+\end{tabular}
+
+\begin{tabular}{lccccccccccccccc} 
+    & 	 \multicolumn{3}{c}{property1} 	 & 	 \multicolumn{3}{c}{property2} 	 & 	 \multicolumn{3}{c}{property3} 	 & 	 \multicolumn{3}{c}{property4} 	 & 	 \multicolumn{3}{c}{property5} \\ 
+    & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 	 & 	 0.001 	 & 	 0.010 	 & 	 0.030 \\ 
+NN1 	 & 	 UNSAT 1857 	 & 	 UNSAT 1858 	 & 	 UNSAT 1859 	 & 	 UNSAT 1860 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 \\ 
+    & 	 UNSAT 3641 	 & 	 UNSAT 1859 	 & 	 UNSAT 1860 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 \\ 
+NN2 	 & 	 UNSAT 3642 	 & 	 UNSAT 1860 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 \\ 
+    & 	 UNSAT 3643 	 & 	 UNSAT 1861 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 \\ 
+NN3 	 & 	 UNSAT 3644 	 & 	 UNSAT 1862 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 \\ 
+    & 	 UNSAT 3645 	 & 	 UNSAT 1863 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 \\ 
+NN4 	 & 	 UNSAT 3646 	 & 	 UNSAT 1864 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 	 & 	 UNSAT 1877 \\ 
+    & 	 UNSAT 3647 	 & 	 UNSAT 1865 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 	 & 	 UNSAT 1877 	 & 	 UNSAT 1878 \\ 
+NN5 	 & 	 UNSAT 3648 	 & 	 UNSAT 1866 	 & 	 UNSAT 1867 	 & 	 UNSAT 1868 	 & 	 UNSAT 1869 	 & 	 UNSAT 1870 	 & 	 UNSAT 1871 	 & 	 UNSAT 1872 	 & 	 UNSAT 1873 	 & 	 UNSAT 1874 	 & 	 UNSAT 1875 	 & 	 UNSAT 1876 	 & 	 UNSAT 1877 	 & 	 UNSAT 1878 	 & 	 UNSAT 1879 \\ 
+\end{tabular}
+\end{table}
+
+\section{Related Works}
+
+
+\section{Conclusion}
+
+\bibliographystyle{splncs04}
+\bibliography{bib}
+%
+
+\end{document}

@@ -1,0 +1,4 @@
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{Search Space Partitions(SSP)}{8}{0}{2}
+\beamer@sectionintoc {3}{hybridGM}{17}{0}{3}
+\beamer@sectionintoc {4}{Conclusions and Future Work}{19}{0}{4}

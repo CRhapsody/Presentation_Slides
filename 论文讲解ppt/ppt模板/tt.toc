@@ -1,0 +1,10 @@
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@subsectionintoc {1}{1}{Extract CFGs from RNN}{4}{0}{1}
+\beamer@subsectionintoc {1}{2}{Common knowledge}{5}{0}{1}
+\beamer@subsectionintoc {1}{3}{Pattern Rule Sets}{7}{0}{1}
+\beamer@subsectionintoc {1}{4}{Example}{20}{0}{1}
+\beamer@sectionintoc {2}{PRS Inference Algorithm}{21}{0}{2}
+\beamer@subsectionintoc {2}{1}{Dual problem}{22}{0}{2}
+\beamer@subsectionintoc {2}{2}{Questions}{23}{0}{2}
+\beamer@subsectionintoc {2}{3}{Converting a PRS to a CFG}{25}{0}{2}
+\beamer@sectionintoc {3}{Result}{26}{0}{3}

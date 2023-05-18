@@ -1,0 +1,98 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\providecommand{\doi}[1]{https://doi.org/#1}
+
+\bibitem{charon}
+Anderson, G., Pailoor, S., Dillig, I., Chaudhuri, S.: Optimization and
+  abstraction: a synergistic approach for analyzing neural network robustness.
+  In: McKinley, K.S., Fisher, K. (eds.) Proceedings of the 40th {ACM} {SIGPLAN}
+  Conference on Programming Language Design and Implementation, {PLDI} 2019,
+  Phoenix, AZ, USA, June 22-26, 2019. pp. 731--744. {ACM} (2019)
+
+\bibitem{planet}
+Ehlers, R.: Formal verification of piece-wise linear feed-forward neural
+  networks. In: 15th International Symposium on Automated Technology for
+  Verification and Analysis (ATVA2017). pp. 269--286 (2017)
+
+\bibitem{AI2}
+Gehr, T., Mirman, M., Drachsler-Cohen, D., Tsankov, P., Chaudhuri, S., Vechev,
+  M.: {AI$^2$}: Safety and robustness certification of neural networks with
+  abstract interpretation. In: 2018 IEEE Symposium on Security and Privacy
+  (S\&P 2018). pp. 948--963 (2018)
+
+\bibitem{reluplex}
+Katz, G., Barrett, C.W., Dill, D.L., Julian, K., Kochenderfer, M.J.: Reluplex:
+  An efficient {SMT} solver for verifying deep neural networks. In: 29th
+  International Conference on Computer Aided Verification (CAV2017). pp.
+  97--117 (2017)
+
+\bibitem{deepsymbol}
+Li, J., Liu, J., Yang, P., Chen, L., Huang, X., Zhang, L.: Analyzing deep
+  neural networks with symbolic propagation: Towards higher precision and
+  faster verification. In: Chang, B.E. (ed.) Static Analysis - 26th
+  International Symposium, {SAS} 2019, Porto, Portugal, October 8-11, 2019,
+  Proceedings. Lecture Notes in Computer Science, vol. 11822, pp. 296--319.
+  Springer (2019)
+
+\bibitem{prodeep}
+Li, R., Li, J., Huang, C., Yang, P., Huang, X., Zhang, L., Xue, B., Hermanns,
+  H.: Prodeep: a platform for robustness verification of deep neural networks.
+  In: Devanbu, P., Cohen, M.B., Zimmermann, T. (eds.) {ESEC/FSE} '20: 28th
+  {ACM} Joint European Software Engineering Conference and Symposium on the
+  Foundations of Software Engineering, Virtual Event, USA, November 8-13, 2020.
+  pp. 1630--1634. {ACM} (2020)
+
+\bibitem{deeppolygpu}
+M{\"{u}}ller, C., Singh, G., P{\"{u}}schel, M., Vechev, M.T.: Neural network
+  robustness verification on gpus. CoRR  \textbf{abs/2007.10868} (2020),
+  \url{https://arxiv.org/abs/2007.10868}
+
+\bibitem{DBLP:conf/cav/PulinaT10}
+Pulina, L., Tacchella, A.: An abstraction-refinement approach to verification
+  of artificial neural networks. In: Computer Aided Verification, 22nd
+  International Conference, {CAV} 2010, Edinburgh, UK, July 15-19, 2010.
+  Proceedings. pp. 243--257 (2010)
+
+\bibitem{medicalsystem}
+Sheikhtaheri, A., Sadoughi, F., Dehaghi, Z.H.: Developing and using expert
+  systems and neural networks in medicine: {A} review on benefits and
+  challenges. J. Medical Syst.  \textbf{38}(9), ~110 (2014)
+
+\bibitem{alphago}
+Silver, D., Huang, A., Maddison, C.J., Guez, A., Sifre, L., van~den Driessche,
+  G., Schrittwieser, J., Antonoglou, I., Panneershelvam, V., Lanctot, M.,
+  Dieleman, S., Grewe, D., Nham, J., Kalchbrenner, N., Sutskever, I.,
+  Lillicrap, T.P., Leach, M., Kavukcuoglu, K., Graepel, T., Hassabis, D.:
+  Mastering the game of go with deep neural networks and tree search. Nature
+  \textbf{529}(7587),  484--489 (2016)
+
+\bibitem{krelu}
+Singh, G., Ganvir, R., P{\"{u}}schel, M., Vechev, M.T.: Beyond the single
+  neuron convex barrier for neural network certification. In: Wallach, H.M.,
+  Larochelle, H., Beygelzimer, A., d'Alch{\'{e}}{-}Buc, F., Fox, E.B., Garnett,
+  R. (eds.) Advances in Neural Information Processing Systems 32: Annual
+  Conference on Neural Information Processing Systems 2019, NeurIPS 2019, 8-14
+  December 2019, Vancouver, BC, Canada. pp. 15072--15083 (2019)
+
+\bibitem{deepz}
+Singh, G., Gehr, T., Mirman, M., P{\"{u}}schel, M., Vechev, M.T.: Fast and
+  effective robustness certification. In: Advances in Neural Information
+  Processing Systems 31: Annual Conference on Neural Information Processing
+  Systems 2018, NeurIPS 2018, 3-8 December 2018, Montr{\'{e}}al, Canada. pp.
+  10825--10836 (2018)
+
+\bibitem{deeppoly}
+Singh, G., Gehr, T., P{\"{u}}schel, M., Vechev, M.T.: An abstract domain for
+  certifying neural networks. {PACMPL}  \textbf{3}({POPL}),  41:1--41:30 (2019)
+
+\bibitem{SZSBEGF2014}
+Szegedy, C., Zaremba, W., Sutskever, I., Bruna, J., Erhan, D., Goodfellow, I.,
+  Fergus, R.: Intriguing properties of neural networks. In: International
+  Conference on Learning Representations (ICLR2014) (2014)
+
+\bibitem{selfdriving}
+Urmson, C., Whittaker, W.: Self-driving cars and the urban challenge. {IEEE}
+  Intell. Syst.  \textbf{23}(2),  66--68 (2008)
+
+\end{thebibliography}

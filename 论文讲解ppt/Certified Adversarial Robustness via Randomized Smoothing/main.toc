@@ -1,0 +1,11 @@
+\beamer@sectionintoc {1}{Contribution}{3}{0}{1}
+\beamer@sectionintoc {2}{Randomized Smoothing}{5}{0}{2}
+\beamer@subsectionintoc {2}{1}{Introduction}{6}{0}{2}
+\beamer@subsectionintoc {2}{2}{Robustness Guarantee}{8}{0}{2}
+\beamer@subsectionintoc {2}{3}{Special case}{12}{0}{2}
+\beamer@sectionintoc {3}{Practical algorithm}{15}{0}{3}
+\beamer@subsectionintoc {3}{1}{prediction}{16}{0}{3}
+\beamer@subsectionintoc {3}{2}{Certify}{17}{0}{3}
+\beamer@sectionintoc {4}{Experiment}{18}{0}{4}
+\beamer@subsectionintoc {4}{1}{Training}{19}{0}{4}
+\beamer@subsectionintoc {4}{2}{result}{20}{0}{4}

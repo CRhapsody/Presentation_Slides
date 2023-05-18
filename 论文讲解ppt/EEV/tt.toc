@@ -1,0 +1,5 @@
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{Efficient Exact Verification of Binarized Neural Networks}{7}{0}{2}
+\beamer@sectionintoc {3}{Training solver-friendly BNNs}{13}{0}{3}
+\beamer@sectionintoc {4}{Training verifiably robust BNNs}{18}{0}{4}
+\beamer@sectionintoc {5}{Other Experiments}{21}{0}{5}
